@@ -74,9 +74,9 @@ def safe_check(inst_checker_ctx):
     return inst_checker
 
 if __name__ == '__main__':
-    in_path = os.path.join(os.path.dirname(__file__), 'data', 'in.txt')
-    out_good_path = os.path.join(os.path.dirname(__file__), 'data', 'out_good.txt')
-    out_bad_path = os.path.join(os.path.dirname(__file__), 'data', 'out_bad.txt')
+    in_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'in.txt')
+    out_good_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'out_good.txt')
+    out_bad_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'out_bad.txt')
     
     ua_name = random.choice(get_useragent_list())
     
