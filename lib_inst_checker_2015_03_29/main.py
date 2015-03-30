@@ -7,6 +7,12 @@ import threading
 from . import inst_checker
 from . import get_useragent_func
 
+def try_print(*args, **kwargs):
+    try:
+        print(*args, **kwargs)
+    except (ValueError, OSError):
+        pass
+
 def safe_check(inst_checker_ctx):
     def thread_func():
         try:
@@ -49,14 +55,14 @@ def main():
         username = in_line_split[0].strip()
         password = in_line_split[1].strip()
         
-        print('begin:', username)
+        try_print('begin:', username)
         
         inst_checker_ctx = inst_checker.InstCheckerCtx()
         inst_checker.init_inst_checker_ctx(inst_checker_ctx, ua_name, username, password)
         safe_check(inst_checker_ctx)
         
         if inst_checker_ctx.error_type is not None:
-            print('error:', inst_checker_ctx.error_type, inst_checker_ctx.error_str)
+            try_print('error:', inst_checker_ctx.error_type, inst_checker_ctx.error_str)
             continue
         
         if inst_checker_ctx.is_auth:
@@ -66,6 +72,6 @@ def main():
             out_bad_fd.write('{}\n'.format(line))
             out_bad_fd.flush()
         
-        print('result:', inst_checker_ctx.is_auth)
+        try_print('result:', inst_checker_ctx.is_auth)
     
-    print('all done!')
+    try_print('all done!')
