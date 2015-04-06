@@ -4,6 +4,7 @@ assert str is not bytes
 
 import os, os.path
 import threading
+import itertools
 from . import inst_checker
 from . import get_useragent_func
 
@@ -35,6 +36,7 @@ def safe_check(inst_checker_ctx):
 
 def main():
     in_path = os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'in.txt')
+    in_email_path = os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'in_email.txt')
     out_good_path = os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'out_good.txt')
     out_bad_path = os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'out_bad.txt')
     
@@ -43,6 +45,20 @@ def main():
     in_fd = open(in_path, mode='r', encoding='utf-8', errors='replace')
     out_good_fd = open(out_good_path, mode='w', encoding='utf-8', newline='\n')
     out_bad_fd = open(out_bad_path, mode='w', encoding='utf-8', newline='\n')
+    
+    try:
+        in_email_fd = open(in_email_path, mode='r', encoding='utf-8', errors='replace')
+    except OSError:
+        in_email_fd = None
+    
+    email_list = []
+    if in_email_fd is not None:
+        for in_email_line in in_email_fd:
+            email_line = in_email_line.strip()
+            if not email_line:
+                continue
+            email_list.append(email_line)
+    email_iter = itertools.cycle(email_list)
     
     for in_line in in_fd:
         line = in_line.strip()
@@ -59,6 +75,10 @@ def main():
         
         inst_checker_ctx = inst_checker.InstCheckerCtx()
         inst_checker.init_inst_checker_ctx(inst_checker_ctx, ua_name, username, password)
+        
+        if email_list:
+            inst_checker_ctx.email_iter = email_iter
+        
         safe_check(inst_checker_ctx)
         
         if inst_checker_ctx.error_type is not None:
