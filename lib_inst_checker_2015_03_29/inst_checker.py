@@ -32,7 +32,7 @@ def unsafe_check(inst_checker_ctx):
     login_url = url_parse.urljoin(INSTAGRAM_URL, 'accounts/login/')
     edit_url = url_parse.urljoin(INSTAGRAM_URL, 'accounts/edit/')
     password_url = url_parse.urljoin(INSTAGRAM_URL, 'accounts/password/change/')
-    login_ajax_url = login_url = url_parse.urljoin(INSTAGRAM_URL, 'accounts/login/ajax/')
+    login_ajax_url = url_parse.urljoin(INSTAGRAM_URL, 'accounts/login/ajax/')
     
     resp = open_func(
         opener,
