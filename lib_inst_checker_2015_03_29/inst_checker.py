@@ -48,6 +48,8 @@ def unsafe_check(inst_checker_ctx):
     if resp.getcode() != 200 or resp.geturl() != login_url:
         raise InstCheckerError('fetch login_url error')
     
+    print('***', 'fetch login_url OK', '***')
+    
     csrftoken = cookies._cookies[INSTAGRAM_DOMAIN]['/']['csrftoken'].value
     
     resp = open_func(
