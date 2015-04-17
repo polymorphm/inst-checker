@@ -16,6 +16,9 @@ def try_print(*args, **kwargs):
 
 def safe_check(inst_checker_ctx):
     def thread_func():
+        inst_checker_ctx.error_type = None
+        inst_checker_ctx.error_str = None
+        
         try:
             inst_checker.unsafe_check(inst_checker_ctx)
         except Exception as e:
@@ -24,9 +27,26 @@ def safe_check(inst_checker_ctx):
             
             inst_checker_ctx.error_type = error_type
             inst_checker_ctx.error_str = error_str
-        else:
-            inst_checker_ctx.error_type = None
-            inst_checker_ctx.error_str = None
+    
+    thr = threading.Thread(target=thread_func)
+    thr.start()
+    thr.join()
+    
+    return inst_checker
+
+def safe_edit(inst_checker_ctx):
+    def thread_func():
+        inst_checker_ctx.error_type = None
+        inst_checker_ctx.error_str = None
+        
+        try:
+            inst_checker.unsafe_edit(inst_checker_ctx)
+        except Exception as e:
+            error_type = type(e)
+            error_str = str(e)
+            
+            inst_checker_ctx.error_type = error_type
+            inst_checker_ctx.error_str = error_str
     
     thr = threading.Thread(target=thread_func)
     thr.start()
@@ -39,12 +59,14 @@ def main():
     in_email_path = os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'in_email.txt')
     out_good_path = os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'out_good.txt')
     out_bad_path = os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'out_bad.txt')
+    out_edit_path = os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'out_edit.txt')
     
     get_useragent = get_useragent_func.GetUseragentFunc()
     
     in_fd = open(in_path, mode='r', encoding='utf-8', errors='replace')
     out_good_fd = open(out_good_path, mode='w', encoding='utf-8', newline='\n')
     out_bad_fd = open(out_bad_path, mode='w', encoding='utf-8', newline='\n')
+    out_edit_fd = open(out_edit_path, mode='w', encoding='utf-8', newline='\n')
     
     try:
         in_email_fd = open(in_email_path, mode='r', encoding='utf-8', errors='replace')
@@ -64,7 +86,7 @@ def main():
         line = in_line.strip()
         in_line_split = line.split(sep=':')
         
-        if len(in_line_split) != 2:
+        if len(in_line_split) < 2:
             continue
         
         ua_name = get_useragent()
@@ -92,6 +114,26 @@ def main():
             out_bad_fd.write('{}\n'.format(line))
             out_bad_fd.flush()
         
-        try_print('result:', inst_checker_ctx.is_auth)
+        try_print('auth result:', inst_checker_ctx.is_auth)
+        
+        safe_edit(inst_checker_ctx)
+        
+        if not inst_checker_ctx.is_auth:
+            continue
+        
+        if inst_checker_ctx.is_edit_begin:
+            out_edit_fd.write('{}:{}:{}:{}\n'.format(
+                inst_checker_ctx.new_username,
+                inst_checker_ctx.new_email,
+                password,
+                inst_checker_ctx.is_edit,
+            ))
+            out_edit_fd.flush()
+        
+        try_print('edit result:', inst_checker_ctx.is_edit_begin, inst_checker_ctx.is_edit)
+        
+        if inst_checker_ctx.error_type is not None:
+            try_print('error:', inst_checker_ctx.error_type, inst_checker_ctx.error_str)
+            continue
     
     try_print('all done!')
