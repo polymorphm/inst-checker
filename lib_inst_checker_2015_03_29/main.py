@@ -116,6 +116,9 @@ def main():
         
         try_print('auth result:', inst_checker_ctx.is_auth)
         
+        if not email_list:
+            continue
+        
         safe_edit(inst_checker_ctx)
         
         if not inst_checker_ctx.is_auth:
