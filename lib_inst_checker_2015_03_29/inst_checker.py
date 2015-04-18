@@ -241,10 +241,13 @@ def unsafe_edit(inst_checker_ctx):
         raise InstCheckerError('unknown email service')
     
     if '+' in email_login and '@' in email_login:
-        email_login = '{}{}'.format(
+        fixed_email_login = '{}{}'.format(
             email_login[:email_login.find('+')],
             email_login[email_login.rfind('@'):]
         )
+        
+        if len(fixed_email_login) <= len(email_login):
+            email_login = fixed_email_login
     
     for att_i in range(10):
         time.sleep(10)
