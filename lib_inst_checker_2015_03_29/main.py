@@ -5,8 +5,11 @@ assert str is not bytes
 import os, os.path
 import threading
 import itertools
+import time
 from . import inst_checker
 from . import get_useragent_func
+
+ERROR_DELAY = 60.0
 
 def try_print(*args, **kwargs):
     try:
@@ -105,6 +108,8 @@ def main():
         
         if inst_checker_ctx.error_type is not None:
             try_print('error:', inst_checker_ctx.error_type, inst_checker_ctx.error_str)
+            time.sleep(ERROR_DELAY)
+            
             continue
         
         if inst_checker_ctx.is_auth:
@@ -137,6 +142,8 @@ def main():
         
         if inst_checker_ctx.error_type is not None:
             try_print('error:', inst_checker_ctx.error_type, inst_checker_ctx.error_str)
+            time.sleep(ERROR_DELAY)
+            
             continue
     
     try_print('all done!')
